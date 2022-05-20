@@ -120,11 +120,6 @@ class frmSerialMonitor(wx.Frame):
             "",
             style=wx.TE_MULTILINE | wx.TE_READONLY)
 
-        self.item_list = wx.ListCtrl(
-            self,
-            style=wx.LC_REPORT | wx.BORDER_SUNKEN)
-
-
         self.txtSubmitString = wx.TextCtrl(
             self,
             wx.ID_ANY,
@@ -142,8 +137,6 @@ class frmSerialMonitor(wx.Frame):
         self._conn = None
         self._recievedQueue = queue.Queue()
         self.maxSerialChars = 10*1000
-
-        self.debugInfoDict = dict()
 
         self.redrawTimer = wx.Timer(self)
         self.comTimer = wx.Timer(self)
@@ -188,14 +181,6 @@ class frmSerialMonitor(wx.Frame):
         self.Bind(
             wx.EVT_CHAR_HOOK,
             self.OnKey)
-
-        self.item_list.Bind(
-            wx.EVT_LIST_ITEM_SELECTED,
-            self.OnDebugItemSelected)
-
-        self.Bind(
-            wx.EVT_PAINT,
-            self.OnPaint)
 
     """
     def __bindTimer(self):
@@ -336,6 +321,7 @@ class frmSerialMonitor(wx.Frame):
             self.stopReceivingThread()
 
             self.logger.debug("all tasks are stopped")
+            self.logger = None
         except Exception as e:
             self.logger.warning(e)
 
@@ -498,22 +484,6 @@ class frmSerialMonitor(wx.Frame):
 
         return theRunTime
 
-    def restorePreviousSelection(self):
-        idx = self.activeUserSelection["item"]
-        self.item_list.Focus(idx)
-        self.item_list.Select(idx)
-
-        focItm = self.item_list.GetFocusedItem()
-        focItmTxt = self.item_list.GetItemText(focItm)
-
-        # load its detail content
-        self.getDebugItemDetail(key=focItmTxt)
-
-        # select last selected detail item
-        # idx = self.activeUserSelection["detail"]
-        # self.item_detail_list.Focus(idx)
-        # self.item_detail_list.Select(idx)
-
     def restorePortSelection(self, portString):
         matchingIndexList = list()
 
@@ -671,30 +641,6 @@ class frmSerialMonitor(wx.Frame):
 
         self.txtSubmitString.Clear()
 
-    def OnPaint(self, evt):
-        width, height = self.item_detail_list.GetSize()
-        for i in range(2):
-            self.item_detail_list.SetColumnWidth(i, width/2)
-        evt.Skip()
-
-    def OnDebugItemSelected(self, event):
-        # called as a element of the source is selected
-        item = event.GetText().replace(" ", "-")
-        itemIdx = event.GetIndex()
-
-        # self.logger.debug("user selected item: %s, idx %d" %(item, itemIdx))
-        self.activeUserSelection["item"] = itemIdx
-        self.activeUserSelection["detail"] = 0
-
-        self.getDebugItemDetail(key=item)
-
-    def OnDetailSelected(self, event):
-        # called as a element of the detail view is selected
-        item = event.GetText()
-        itemIdx = event.GetIndex()
-
-        # self.logger.debug("user selected item detail: %s, idx %d" %(item, itemIdx))
-        self.activeUserSelection["detail"] = itemIdx
 
     ##
     ## Called on about.
