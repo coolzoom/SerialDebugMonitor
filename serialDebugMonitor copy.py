@@ -21,13 +21,11 @@ class SerialMonitor():
         self.defaultPort = "COM4"
 
         # create empty list of available ports
-        self.availablePorts = list()
-        ports = list(port_list.comports())
-
-        self.availablePorts = list()
-        for p in ports:
-            self.availablePorts.append(p.device)
-
+        # ports info https://pyserial.readthedocs.io/en/latest/tools.html#serial.tools.list_ports.ListPortInfo
+        # device, name, description
+        self.allComPortsInfo = list(port_list.comports())
+        print(self.allComPortsInfo)
+        
         self._receivingThread = None
         self._runReadThread = False
 
@@ -35,6 +33,22 @@ class SerialMonitor():
         
         self._conn = None
 
+    def getArduinoPort(self):
+        ports = self.allComPortsInfo
+        invalidPorts = ["/dev/tty.Bluetooth-Incoming-Port", "/dev/ttyAMA0"]
+        for port in ports:
+            validPort = True
+            for invalidP in invalidPorts:
+                if port.device == invalidP:
+                    validPort = False
+                else: continue
+            if validPort is True:
+                print("valid port " + port.description)
+                self.defaultPort = port.device
+                return port.device
+                
+        return None
+    
     def stopAllTasks(self):
         try:
             # stop all timer here
@@ -237,6 +251,7 @@ class SerialMonitor():
         logger.info("... closing app after %s" %self.getRuntime())
 
 ser=SerialMonitor()
+print(ser.getArduinoPort())
 ser.OpenPort()
 ser.ConnectTarget()
 
