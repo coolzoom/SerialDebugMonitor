@@ -174,6 +174,22 @@ class SerialMonitor():
             return
 
         if self._conn.isOpen():
+            self.logger.debug("Port is already open")
+        else:
+            # connection not yet open
+            self.logger.debug("Port is not open, opening now")
+            self._conn.open()
+            time.sleep(0.1)
+            # start the receiving thread
+            self.startReceivingThread()
+
+            self.logger.debug("Port is open now, ready to receive")
+    def DisconnectTarget(self):
+        # return if connection is None
+        if self._conn == None:
+            return
+
+        if self._conn.isOpen():
             # connection is open
             self.logger.debug("Port is open, closing now")
 
@@ -184,15 +200,7 @@ class SerialMonitor():
             #self.stopAllTasks()
             self.logger.debug("Port is closed, ready to open")
         else:
-            # connection not yet open
-            self.logger.debug("Port is not open, opening now")
-            self._conn.open()
-            time.sleep(0.1)
-            # start the receiving thread
-            self.startReceivingThread()
-
-            self.logger.debug("Port is open now, ready to receive")
-
+            self.logger.debug("Port is already closed")
     def WriteCommand(self,str):
         strout = str + '\r\n'
         if(self._conn != None):
@@ -246,5 +254,5 @@ ser.stopWriteThread()
 
 #close port
 time.sleep(10)
-ser.ConnectTarget()
+ser.DisconnectTarget()
 ser.CloseApp()
