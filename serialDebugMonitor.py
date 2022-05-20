@@ -638,6 +638,7 @@ class frmSerialMonitor(wx.Frame):
                     self.txtSerialMonitor.AppendText(out)
 
         self.txtSubmitString.Clear()
+        self.txtSerialMonitor.AppendText("\r\n")
 
 
     ##
