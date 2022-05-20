@@ -322,6 +322,14 @@ class SerialMonitor():
             target=self.WriteTest,
             name="WriteThread")
         self._writeThread.start()
+
+
+    def stopWriteThread(self):
+        self.logger.info("Stopping Writing thread now")
+        if self._writeThread is not None:
+            # wait up to 1 second until thread terminates
+            self._writeThread.join(1)
+            del self._writeThread
     ##
     ## @brief      Quit app and stop all tasks
     ##
@@ -347,13 +355,17 @@ ser.ConnectTarget()
 
 #wait for it initialize
 time.sleep(10)
-#test write and see if we have response
+#test write and see if we have response, this is used during production
 ser.WriteCommand('G28')
+
+# test write thread, this is probably not useful for production
+ser.startWriteThread()
+time.sleep(100)
+
+# stop write thread
+ser.stopWriteThread()
 
 #close port
 time.sleep(10)
 ser.ConnectTarget()
 ser.CloseApp()
-
-# ser.startWriteThread()
-
