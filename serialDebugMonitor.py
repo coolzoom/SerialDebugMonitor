@@ -30,7 +30,6 @@
 
 import logging
 import datetime
-import json
 import queue
 import random
 
@@ -125,36 +124,18 @@ class frmSerialMonitor(wx.Frame):
             self,
             style=wx.LC_REPORT | wx.BORDER_SUNKEN)
 
-        # most left column of sources list (wx.ListCtrl)
-        self.item_list.InsertColumn(
-            col=0,
-            heading="Type",
-            width=100)
-
-        self.item_detail_list = wx.ListCtrl(
-            self,
-            # size = (-1 , - 1),
-            style=wx.LC_REPORT | wx.BORDER_SUNKEN)
-
-        # define columns of this list, access by index
-        self.item_detail_list.InsertColumn(
-            col=0,
-            heading="Key")
-        self.item_detail_list.InsertColumn(
-            col=1,
-            heading="Value")
 
         self.txtSubmitString = wx.TextCtrl(
             self,
             wx.ID_ANY,
             "")
-        self.txtSubmitString.Disable()
+        # self.txtSubmitString.Disable()
 
         self.btnSubmit = wx.Button(
             self,
             wx.ID_ANY,
             "Submit")
-        self.btnSubmit.Disable()
+        # self.btnSubmit.Disable()
 
         self._receivingThread = None
         self._runReadThread = False
@@ -212,10 +193,6 @@ class frmSerialMonitor(wx.Frame):
             wx.EVT_LIST_ITEM_SELECTED,
             self.OnDebugItemSelected)
 
-        self.item_detail_list.Bind(
-            wx.EVT_LIST_ITEM_SELECTED,
-            self.OnDetailSelected)
-
         self.Bind(
             wx.EVT_PAINT,
             self.OnPaint)
@@ -261,17 +238,6 @@ class frmSerialMonitor(wx.Frame):
             # flag=wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND,
             )
 
-        # add horizontal box sizer containing list view of serial data
-        szrList = wx.BoxSizer(wx.HORIZONTAL)
-        szrList.Add(
-            self.item_list,
-            proportion=0,
-            flag=wx.ALL | wx.EXPAND)
-        szrList.Add(
-            self.item_detail_list,
-            proportion=1,
-            flag=wx.ALL | wx.EXPAND)
-
         # add szrPorts to main box sizer
         szrMain.Add(
             szrPorts,
@@ -290,13 +256,6 @@ class frmSerialMonitor(wx.Frame):
         szrMain.Add(
             self.txtSerialMonitor,
             proportion=1,
-            flag=wx.EXPAND,
-            border=10)
-
-        # add szrList to main box sizer
-        szrMain.Add(
-            szrList,
-            proportion=0,
             flag=wx.EXPAND,
             border=10)
 
@@ -439,7 +398,6 @@ class frmSerialMonitor(wx.Frame):
                     # AppendText is not thread safe!
                     # self.txtSerialMonitor.AppendText(line)
                     self.listen_event(data=messageDict)
-                    self.listen_json_event(data=line)
 
                 time.sleep(0.1)
 
@@ -540,83 +498,6 @@ class frmSerialMonitor(wx.Frame):
 
         return theRunTime
 
-    ##
-    ## @brief      Convert nested dict to flat dict
-    ##
-    ## @param      self  The object
-    ## @param      y     Dict to flatten
-    ##
-    ## @return     Flat JSON structure
-    ##
-    def flatten_json(self, y):
-        out = {}
-
-        def flatten(x, name=''):
-            if type(x) is dict:
-                for a in x:
-                    flatten(x[a], name + a + '_')
-            elif type(x) is list:
-                i = 0
-                for a in x:
-                    flatten(a, name + str(i) + '_')
-                    i += 1
-            else:
-                out[name[:-1]] = x
-
-        flatten(y)
-
-        return out
-
-    def getDebugItemDetail(self, key):
-        # index of this row
-        index = 0
-
-        # remove all elements/rows/items in this list view
-        self.item_detail_list.DeleteAllItems()
-
-        # if this element contains a nested dict, make it flat before showing
-        if type(self.debugInfoDict[key]) is dict:
-            # flatten this element
-            flatElement = self.flatten_json(self.debugInfoDict[key])
-
-            # add new rows for all elements of the flat dict
-            for el, val in sorted(flatElement.items()):
-                # add key (most left column of this list)
-                self.item_detail_list.InsertItem(index, el)
-
-                # add value to this key (most right column of this list)
-                self.item_detail_list.SetItem(index, 1, str(flatElement[el]))
-                index += 1
-        else:
-            # add key (most left column of this list)
-            self.item_detail_list.InsertItem(index, key)
-
-            # add value to this key (most right column of this list)
-            self.item_detail_list.SetItem(index, 1, str(self.debugInfoDict[key]))
-
-    def getAllDebugItems(self, data):
-        # self.logger.debug("Received: %s, of type %s" %(data, type(data)))
-
-        try:
-            self.debugInfoDict = json.loads(data)
-            # self.logger.debug(self.debugInfoDict)
-
-            # prettyJsonDump = json.dumps(self.debugInfoDict, indent=4)
-            # self.logger.debug(prettyJsonDump)
-
-            # remove all elements/rows/items in this list view
-            self.item_list.DeleteAllItems()
-
-            for ele, val in sorted(self.debugInfoDict.items(), reverse=True):
-                self.item_list.InsertItem(0, ele)
-
-            # do only if debugInfoDict has content
-            if self.debugInfoDict:
-                self.restorePreviousSelection()
-        except Exception as e:
-            pass
-            # self.logger.warning(e)
-
     def restorePreviousSelection(self):
         idx = self.activeUserSelection["item"]
         self.item_list.Focus(idx)
@@ -659,9 +540,6 @@ class frmSerialMonitor(wx.Frame):
 
     def listen_event(self, data):
         wx.CallAfter(self.fillSerialConsole, data)
-
-    def listen_json_event(self, data):
-        wx.CallAfter(self.getAllDebugItems, data)
 
     def fillSerialConsole(self, data):
         # build message string
@@ -779,7 +657,7 @@ class frmSerialMonitor(wx.Frame):
                 self._conn.close()
                 exit()
             else:
-                strOut = self.txtSubmitString.GetValue() + b'\r\n'
+                strOut = self.txtSubmitString.GetValue() + '\r\n'
                 self.txtSerialMonitor.AppendText("\r\n>> " + self.txtSubmitString.GetValue())
                 self._conn.write(strOut.encode())
                 out = ''
@@ -833,7 +711,7 @@ class frmSerialMonitor(wx.Frame):
         aboutInfo = wx.adv.AboutDialogInfo()
         aboutInfo.SetName("EVSE Serial Debug Monitor")
         aboutInfo.SetVersion("0.2.0")
-        aboutInfo.SetDescription(("Serial Monitor with JSON parser for EVSE Debug output"))
+        aboutInfo.SetDescription(("Serial Monitor EVSE Debug output"))
         aboutInfo.SetCopyright("(C) 2020")
         licenseText = open("LICENSE", 'r').read()
         aboutInfo.SetLicense(licenseText)
