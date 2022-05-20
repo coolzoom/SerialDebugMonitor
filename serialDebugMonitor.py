@@ -585,11 +585,13 @@ class frmSerialMonitor(wx.Frame):
             # connection is open
             self.logger.debug("Port is open, closing now")
 
-            self._conn.close()
-
             if self._receivingThread != None:
                 # stop any (may already running) receiving thread
                 self.stopReceivingThread()
+
+            self._conn.close()
+
+            #self.stopAllTasks()
 
             self.btnConnect.SetLabel("Connect")
             self.logger.debug("Port is closed, ready to open")
