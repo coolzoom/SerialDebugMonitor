@@ -373,7 +373,7 @@ class frmSerialMonitor(wx.Frame):
                     messageDict = dict()
                     messageDict["timestamp"] = unixMicros
                     messageDict["message"] = str(line,'utf-8') #bydefault it output byte, like b'echo:Home offset:\n', so we need to assign encoding
-                    print(line)
+                    print(str(line,'utf-8'))
                     # add this message dict to the received queue
                     # self._recievedQueue.put(messageDict)
 
