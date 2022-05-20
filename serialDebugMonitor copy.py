@@ -34,6 +34,9 @@ class SerialMonitor():
 
         self._receivingThread = None
         self._runReadThread = False
+
+        self._writeThread = None
+        
         self._conn = None
         self._recievedQueue = queue.Queue()
         self.maxSerialChars = 10*1000
@@ -309,8 +312,16 @@ class SerialMonitor():
         if(self._conn != None):
             self._conn.write(strout.encode() )
 
-
-
+    def WriteTest(self):
+        while True:
+            self.WriteCommand('G28')
+            time.sleep(3)
+            
+    def startWriteThread(self):
+        self._writeThread = threading.Thread(
+            target=self.WriteTest,
+            name="WriteThread")
+        self._writeThread.start()
     ##
     ## @brief      Quit app and stop all tasks
     ##
@@ -330,10 +341,19 @@ class SerialMonitor():
 
         logger.info("... closing app after %s" %self.getRuntime())
 
-        self.Destroy()
-
 ser=SerialMonitor()
 ser.OpenPort()
 ser.ConnectTarget()
+
+#wait for it initialize
+time.sleep(10)
+#test write and see if we have response
 ser.WriteCommand('G28')
+
+#close port
+time.sleep(10)
+ser.ConnectTarget()
+ser.CloseApp()
+
+# ser.startWriteThread()
 
