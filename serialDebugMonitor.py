@@ -70,7 +70,7 @@ class frmSerialMonitor(wx.Frame):
         self.SetBackgroundColour("WHITE")
 
         # define default baudrate and port name (can be part of port's name)
-        defaultBaudrate = 921600
+        defaultBaudrate = 250000
         self.defaultPort = "usbmodem1421"
 
         # create list of available baudrates
