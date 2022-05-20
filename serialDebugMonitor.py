@@ -31,18 +31,14 @@
 import logging
 import datetime
 import queue
-import random
 
 import serial
 import serial.tools.list_ports as port_list
-from serial import SerialException
 
 import threading
 
 import wx
 import time
-from wx import TextCtrl
-from wx import adv
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -376,8 +372,8 @@ class frmSerialMonitor(wx.Frame):
                     # create dict of this message
                     messageDict = dict()
                     messageDict["timestamp"] = unixMicros
-                    messageDict["message"] = line
-
+                    messageDict["message"] = str(line,'utf-8') #bydefault it output byte, like b'echo:Home offset:\n', so we need to assign encoding
+                    print(line)
                     # add this message dict to the received queue
                     # self._recievedQueue.put(messageDict)
 
@@ -514,7 +510,7 @@ class frmSerialMonitor(wx.Frame):
     def fillSerialConsole(self, data):
         # build message string
         textMessage = "%s \t %s" %(data["timestamp"], data["message"])
-
+        #print(textMessage)
         txtContent = self.txtSerialMonitor.GetValue()
 
         # limit content length to 10000 characters
